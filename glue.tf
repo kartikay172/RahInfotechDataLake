@@ -67,15 +67,30 @@ resource "aws_glue_crawler" "sharepoint_data" {
   name          = "${var.project_name}-crawler"
   role          = aws_iam_role.glue_crawler.arn
   database_name = aws_glue_catalog_database.this.name
+
   s3_target {
-    path = "s3://${aws_s3_bucket.data.bucket}/processed/"
+    path       = "s3://${aws_s3_bucket.data.bucket}/processed/Resources_Details/"
+    exclusions = ["**.json"]
   }
+
+  s3_target {
+    path       = "s3://${aws_s3_bucket.data.bucket}/processed/Services/"
+    exclusions = ["**.json"]
+  }
+
   schema_change_policy {
     update_behavior = "UPDATE_IN_DATABASE"
     delete_behavior = "LOG"
   }
+
   configuration = jsonencode({
     Version = 1.0
-    CrawlerOutput = { Partitions = { AddOrUpdateBehavior = "InheritFromTable" } }
+    CrawlerOutput = {
+      Partitions = { AddOrUpdateBehavior = "InheritFromTable" }
+      Tables     = { AddOrUpdateBehavior = "MergeNewColumns" }
+    }
+    Grouping = {
+      TableGroupingPolicy = "CombineCompatibleSchemas"
+    }
   })
 }
