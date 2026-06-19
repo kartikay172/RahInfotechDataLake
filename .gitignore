@@ -1,0 +1,14 @@
+﻿# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars
+crash.log
+
+# AWS
+.aws/
+
+# Glue policy temp file
+glue-s3-policy.json
+downloaded_etl.py
