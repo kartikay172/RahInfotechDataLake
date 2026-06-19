@@ -87,7 +87,7 @@ for key in xlsx_keys:
             rows = list(ws.values)
             if len(rows)<2: continue
             headers  = [str(h).strip() if h else f"col_{i}" for i,h in enumerate(rows[0])]
-            data     = [[str(c) if c is not None else "" for c in r] for r in rows[1:] if any(c is not None for c in r)]
+            data     = [[str(c).replace(chr(10), " | ").replace(chr(13), "") if c is not None else "" for c in r] for r in rows[1:] if any(c is not None for c in r)]
             if not data: continue
             col_types = infer_types(data, headers)
             transformed = []
