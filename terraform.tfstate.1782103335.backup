@@ -1,0 +1,1272 @@
+{
+  "version": 4,
+  "terraform_version": "1.15.6",
+  "serial": 86,
+  "lineage": "7d5499ec-fa48-f442-dd09-59a9fe029b03",
+  "outputs": {
+    "athena_query_policy_arn": {
+      "value": "arn:aws:iam::926046660390:policy/sharepoint-data-athena-query-policy",
+      "type": "string"
+    },
+    "athena_workgroup_name": {
+      "value": "sharepoint-data-workgroup",
+      "type": "string"
+    },
+    "curated_zone": {
+      "value": "s3://navkirat-sharepoint-datalake-v2/curated/",
+      "type": "string"
+    },
+    "data_bucket_name": {
+      "value": "navkirat-sharepoint-datalake-v2",
+      "type": "string"
+    },
+    "glue_curated_crawler": {
+      "value": "sharepoint-data-curated-crawler",
+      "type": "string"
+    },
+    "glue_database_name": {
+      "value": "sharepoint_db",
+      "type": "string"
+    },
+    "glue_etl_job_name": {
+      "value": "sharepoint-data-etl-job",
+      "type": "string"
+    },
+    "glue_etl_trigger": {
+      "value": "sharepoint-data-etl-trigger",
+      "type": "string"
+    },
+    "glue_processed_crawler": {
+      "value": "sharepoint-data-processed-crawler",
+      "type": "string"
+    },
+    "kms_key_alias": {
+      "value": "alias/sharepoint-data-key",
+      "type": "string"
+    },
+    "kms_key_arn": {
+      "value": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+      "type": "string"
+    },
+    "processed_zone": {
+      "value": "s3://navkirat-sharepoint-datalake-v2/processed/",
+      "type": "string"
+    },
+    "raw_zone": {
+      "value": "s3://navkirat-sharepoint-datalake-v2/raw/",
+      "type": "string"
+    },
+    "secret_name": {
+      "value": "sharepoint-data/pii-config",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_caller_identity",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "account_id": "926046660390",
+            "arn": "arn:aws:iam::926046660390:user/kartikay_",
+            "id": "926046660390",
+            "user_id": "AIDA5PHFOU4TL72R2IH7Z"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_athena_workgroup",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:athena:ap-south-1:926046660390:workgroup/sharepoint-data-workgroup",
+            "configuration": [
+              {
+                "bytes_scanned_cutoff_per_query": 0,
+                "enforce_workgroup_configuration": true,
+                "engine_version": [
+                  {
+                    "effective_engine_version": "Athena engine version 3",
+                    "selected_engine_version": "AUTO"
+                  }
+                ],
+                "execution_role": "",
+                "publish_cloudwatch_metrics_enabled": true,
+                "requester_pays_enabled": false,
+                "result_configuration": [
+                  {
+                    "acl_configuration": [],
+                    "encryption_configuration": [],
+                    "expected_bucket_owner": "",
+                    "output_location": "s3://navkirat-sharepoint-datalake-v2/athena-results/"
+                  }
+                ]
+              }
+            ],
+            "description": "",
+            "force_destroy": false,
+            "id": "sharepoint-data-workgroup",
+            "name": "sharepoint-data-workgroup",
+            "state": "ENABLED",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_glue_catalog_database",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:glue:ap-south-1:926046660390:database/sharepoint_db",
+            "catalog_id": "926046660390",
+            "create_table_default_permission": [
+              {
+                "permissions": [
+                  "ALL"
+                ],
+                "principal": [
+                  {
+                    "data_lake_principal_identifier": "IAM_ALLOWED_PRINCIPALS"
+                  }
+                ]
+              }
+            ],
+            "description": "",
+            "federated_database": [],
+            "id": "926046660390:sharepoint_db",
+            "location_uri": "",
+            "name": "sharepoint_db",
+            "parameters": {},
+            "tags": {},
+            "tags_all": {},
+            "target_database": []
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_glue_crawler",
+      "name": "curated",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:glue:ap-south-1:926046660390:crawler/sharepoint-data-curated-crawler",
+            "catalog_target": [],
+            "classifiers": null,
+            "configuration": "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}},\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"}}",
+            "database_name": "sharepoint_db",
+            "delta_target": [],
+            "description": "",
+            "dynamodb_target": [],
+            "hudi_target": [],
+            "iceberg_target": [],
+            "id": "sharepoint-data-curated-crawler",
+            "jdbc_target": [],
+            "lake_formation_configuration": [
+              {
+                "account_id": "",
+                "use_lake_formation_credentials": false
+              }
+            ],
+            "lineage_configuration": [
+              {
+                "crawler_lineage_settings": "DISABLE"
+              }
+            ],
+            "mongodb_target": [],
+            "name": "sharepoint-data-curated-crawler",
+            "recrawl_policy": [
+              {
+                "recrawl_behavior": "CRAWL_EVERYTHING"
+              }
+            ],
+            "role": "sharepoint-data-glue-crawler-role",
+            "s3_target": [
+              {
+                "connection_name": "",
+                "dlq_event_queue_arn": "",
+                "event_queue_arn": "",
+                "exclusions": [
+                  "**.json"
+                ],
+                "path": "s3://navkirat-sharepoint-datalake-v2/curated/",
+                "sample_size": 0
+              }
+            ],
+            "schedule": "",
+            "schema_change_policy": [
+              {
+                "delete_behavior": "LOG",
+                "update_behavior": "UPDATE_IN_DATABASE"
+              }
+            ],
+            "security_configuration": "",
+            "table_prefix": "",
+            "tags": null,
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_glue_catalog_database.this",
+            "aws_iam_role.glue_crawler",
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_glue_crawler",
+      "name": "processed",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:glue:ap-south-1:926046660390:crawler/sharepoint-data-processed-crawler",
+            "catalog_target": [],
+            "classifiers": null,
+            "configuration": "{\"Version\":1.0,\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"},\"Tables\":{\"AddOrUpdateBehavior\":\"MergeNewColumns\"}},\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"}}",
+            "database_name": "sharepoint_db",
+            "delta_target": [],
+            "description": "",
+            "dynamodb_target": [],
+            "hudi_target": [],
+            "iceberg_target": [],
+            "id": "sharepoint-data-processed-crawler",
+            "jdbc_target": [],
+            "lake_formation_configuration": [
+              {
+                "account_id": "",
+                "use_lake_formation_credentials": false
+              }
+            ],
+            "lineage_configuration": [
+              {
+                "crawler_lineage_settings": "DISABLE"
+              }
+            ],
+            "mongodb_target": [],
+            "name": "sharepoint-data-processed-crawler",
+            "recrawl_policy": [
+              {
+                "recrawl_behavior": "CRAWL_EVERYTHING"
+              }
+            ],
+            "role": "sharepoint-data-glue-crawler-role",
+            "s3_target": [
+              {
+                "connection_name": "",
+                "dlq_event_queue_arn": "",
+                "event_queue_arn": "",
+                "exclusions": [
+                  "**.json"
+                ],
+                "path": "s3://navkirat-sharepoint-datalake-v2/processed/Resources_Details/",
+                "sample_size": 0
+              },
+              {
+                "connection_name": "",
+                "dlq_event_queue_arn": "",
+                "event_queue_arn": "",
+                "exclusions": [
+                  "**.json"
+                ],
+                "path": "s3://navkirat-sharepoint-datalake-v2/processed/Services/",
+                "sample_size": 0
+              }
+            ],
+            "schedule": "",
+            "schema_change_policy": [
+              {
+                "delete_behavior": "LOG",
+                "update_behavior": "UPDATE_IN_DATABASE"
+              }
+            ],
+            "security_configuration": "",
+            "table_prefix": "",
+            "tags": null,
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_glue_catalog_database.this",
+            "aws_iam_role.glue_crawler",
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_glue_job",
+      "name": "sharepoint_etl",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:glue:ap-south-1:926046660390:job/sharepoint-data-etl-job",
+            "command": [
+              {
+                "name": "glueetl",
+                "python_version": "3",
+                "runtime": "",
+                "script_location": "s3://navkirat-sharepoint-datalake-v2/glue-scripts/sharepoint_etl.py"
+              }
+            ],
+            "connections": [],
+            "default_arguments": {
+              "--CURATED_PREFIX": "curated/",
+              "--PROCESSED_PREFIX": "processed/",
+              "--RAW_PREFIX": "raw/",
+              "--REGION_NAME": "ap-south-1",
+              "--SECRET_NAME": "sharepoint-data/pii-config",
+              "--SOURCE_BUCKET": "navkirat-sharepoint-datalake-v2",
+              "--TempDir": "s3://navkirat-sharepoint-datalake-v2/glue-temp/",
+              "--enable-continuous-cloudwatch-log": "true",
+              "--enable-metrics": "true",
+              "--job-bookmark-option": "job-bookmark-enable",
+              "--job-language": "python"
+            },
+            "description": "",
+            "execution_class": "",
+            "execution_property": [
+              {
+                "max_concurrent_runs": 1
+              }
+            ],
+            "glue_version": "4.0",
+            "id": "sharepoint-data-etl-job",
+            "job_run_queuing_enabled": false,
+            "maintenance_window": "",
+            "max_capacity": 2,
+            "max_retries": 0,
+            "name": "sharepoint-data-etl-job",
+            "non_overridable_arguments": {},
+            "notification_property": [],
+            "number_of_workers": 2,
+            "role_arn": "arn:aws:iam::926046660390:role/sharepoint-data-glue-crawler-role",
+            "security_configuration": "sharepoint-data-security-config",
+            "source_control_details": [],
+            "tags": {},
+            "tags_all": {},
+            "timeout": 60,
+            "worker_type": "G.1X"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_glue_security_configuration.etl",
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "aws_s3_bucket.data",
+            "aws_secretsmanager_secret.pii_config",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_glue_security_configuration",
+      "name": "etl",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "encryption_configuration": [
+              {
+                "cloudwatch_encryption": [
+                  {
+                    "cloudwatch_encryption_mode": "DISABLED",
+                    "kms_key_arn": ""
+                  }
+                ],
+                "job_bookmarks_encryption": [
+                  {
+                    "job_bookmarks_encryption_mode": "CSE-KMS",
+                    "kms_key_arn": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8"
+                  }
+                ],
+                "s3_encryption": [
+                  {
+                    "kms_key_arn": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+                    "s3_encryption_mode": "SSE-KMS"
+                  }
+                ]
+              }
+            ],
+            "id": "sharepoint-data-security-config",
+            "name": "sharepoint-data-security-config"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_glue_trigger",
+      "name": "etl_schedule",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "actions": [
+              {
+                "arguments": {},
+                "crawler_name": "",
+                "job_name": "sharepoint-data-etl-job",
+                "notification_property": [],
+                "security_configuration": "",
+                "timeout": 0
+              }
+            ],
+            "arn": "arn:aws:glue:ap-south-1:926046660390:trigger/sharepoint-data-etl-trigger",
+            "description": "",
+            "enabled": true,
+            "event_batching_condition": [],
+            "id": "sharepoint-data-etl-trigger",
+            "name": "sharepoint-data-etl-trigger",
+            "predicate": [],
+            "schedule": "cron(30 0,6,12 * * ? *)",
+            "start_on_creation": true,
+            "state": "ACTIVATED",
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "type": "SCHEDULED",
+            "workflow_name": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjMwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_glue_job.sharepoint_etl",
+            "aws_glue_security_configuration.etl",
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "aws_s3_bucket.data",
+            "aws_secretsmanager_secret.pii_config",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "athena_query",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::926046660390:policy/sharepoint-data-athena-query-policy",
+            "attachment_count": 0,
+            "description": "",
+            "id": "arn:aws:iam::926046660390:policy/sharepoint-data-athena-query-policy",
+            "name": "sharepoint-data-athena-query-policy",
+            "name_prefix": "",
+            "path": "/",
+            "policy": "{\"Statement\":[{\"Action\":[\"athena:StartQueryExecution\",\"athena:GetQueryExecution\",\"athena:GetQueryResults\",\"athena:StopQueryExecution\",\"athena:GetWorkGroup\"],\"Effect\":\"Allow\",\"Resource\":\"*\"},{\"Action\":[\"glue:GetDatabase\",\"glue:GetTable\",\"glue:GetTables\",\"glue:GetPartitions\"],\"Effect\":\"Allow\",\"Resource\":\"*\"},{\"Action\":[\"s3:GetObject\",\"s3:ListBucket\",\"s3:PutObject\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"]},{\"Action\":[\"kms:Decrypt\",\"kms:GenerateDataKey\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8\"]}],\"Version\":\"2012-10-17\"}",
+            "policy_id": "ANPA5PHFOU4TBGSLSVBDW",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "aws_s3_bucket.data",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "appflow_s3",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::926046660390:role/sharepoint-data-appflow-s3-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"appflow.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-19T10:58:08Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "sharepoint-data-appflow-s3-role",
+            "inline_policy": [
+              {
+                "name": "sharepoint-data-appflow-s3-policy",
+                "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"s3:PutObject\",\"s3:GetBucketAcl\",\"s3:PutObjectAcl\",\"s3:ListBucket\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"]}]}"
+              }
+            ],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "sharepoint-data-appflow-s3-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AROA5PHFOU4TDSCBRUY45"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "glue_crawler",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::926046660390:role/sharepoint-data-glue-crawler-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"glue.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2026-06-19T10:58:08Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "sharepoint-data-glue-crawler-role",
+            "inline_policy": [
+              {
+                "name": "glue-s3-write",
+                "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\",\"s3:ListBucket\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"]}]}"
+              },
+              {
+                "name": "sharepoint-data-glue-s3-read",
+                "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\",\"s3:ListBucket\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"],\"Sid\":\"S3Access\"},{\"Action\":[\"kms:Decrypt\",\"kms:GenerateDataKey\",\"kms:DescribeKey\",\"kms:Encrypt\",\"kms:ReEncrypt*\",\"kms:CreateGrant\",\"kms:ListGrants\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8\"],\"Sid\":\"KMSAccess\"},{\"Action\":[\"secretsmanager:GetSecretValue\",\"secretsmanager:DescribeSecret\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai\"],\"Sid\":\"SecretsManagerAccess\"},{\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\",\"logs:AssociateKmsKey\",\"logs:DescribeLogGroups\",\"logs:DescribeLogStreams\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:logs:*:*:*\",\"Sid\":\"CloudWatchLogs\"}]}"
+              }
+            ],
+            "managed_policy_arns": [
+              "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+            ],
+            "max_session_duration": 3600,
+            "name": "sharepoint-data-glue-crawler-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AROA5PHFOU4TNJJHK2X2Q"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "appflow_s3",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "sharepoint-data-appflow-s3-role:sharepoint-data-appflow-s3-policy",
+            "name": "sharepoint-data-appflow-s3-policy",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"s3:PutObject\",\"s3:GetBucketAcl\",\"s3:PutObjectAcl\",\"s3:ListBucket\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"]}]}",
+            "role": "sharepoint-data-appflow-s3-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.appflow_s3",
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "glue_s3_read",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "sharepoint-data-glue-crawler-role:sharepoint-data-glue-s3-read",
+            "name": "sharepoint-data-glue-s3-read",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\",\"s3:ListBucket\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"],\"Sid\":\"S3Access\"},{\"Action\":[\"kms:Decrypt\",\"kms:GenerateDataKey\",\"kms:DescribeKey\",\"kms:Encrypt\",\"kms:ReEncrypt*\",\"kms:CreateGrant\",\"kms:ListGrants\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8\"],\"Sid\":\"KMSAccess\"},{\"Action\":[\"secretsmanager:GetSecretValue\",\"secretsmanager:DescribeSecret\"],\"Effect\":\"Allow\",\"Resource\":[\"arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai\"],\"Sid\":\"SecretsManagerAccess\"},{\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\",\"logs:AssociateKmsKey\",\"logs:DescribeLogGroups\",\"logs:DescribeLogStreams\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:logs:*:*:*\",\"Sid\":\"CloudWatchLogs\"}]}",
+            "role": "sharepoint-data-glue-crawler-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "aws_s3_bucket.data",
+            "aws_secretsmanager_secret.pii_config",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "glue_service",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "sharepoint-data-glue-crawler-role-20260619105809808500000001",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole",
+            "role": "sharepoint-data-glue-crawler-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_kms_alias",
+      "name": "data",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:kms:ap-south-1:926046660390:alias/sharepoint-data-key",
+            "id": "alias/sharepoint-data-key",
+            "name": "alias/sharepoint-data-key",
+            "name_prefix": "",
+            "target_key_arn": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+            "target_key_id": "eba2b72c-f11c-4d37-bce6-eff77e7af3d8"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_kms_key",
+      "name": "data",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+            "bypass_policy_lockout_safety_check": false,
+            "custom_key_store_id": "",
+            "customer_master_key_spec": "SYMMETRIC_DEFAULT",
+            "deletion_window_in_days": 7,
+            "description": "KMS key for SharePoint data lake encryption",
+            "enable_key_rotation": true,
+            "id": "eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+            "is_enabled": true,
+            "key_id": "eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+            "key_usage": "ENCRYPT_DECRYPT",
+            "multi_region": false,
+            "policy": "{\"Statement\":[{\"Action\":\"kms:*\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::926046660390:root\"},\"Resource\":\"*\",\"Sid\":\"Enable IAM User Permissions\"},{\"Action\":[\"kms:Decrypt\",\"kms:GenerateDataKey\",\"kms:DescribeKey\",\"kms:Encrypt\",\"kms:ReEncrypt*\",\"kms:CreateGrant\"],\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::926046660390:role/sharepoint-data-glue-crawler-role\"},\"Resource\":\"*\",\"Sid\":\"Allow Glue Role\"},{\"Action\":[\"kms:Encrypt\",\"kms:Decrypt\",\"kms:ReEncrypt*\",\"kms:GenerateDataKey\",\"kms:DescribeKey\"],\"Condition\":{\"ArnLike\":{\"kms:EncryptionContext:aws:logs:arn\":\"arn:aws:logs:ap-south-1:926046660390:*\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"logs.ap-south-1.amazonaws.com\"},\"Resource\":\"*\",\"Sid\":\"Allow CloudWatch Logs\"}],\"Version\":\"2012-10-17\"}",
+            "rotation_period_in_days": 365,
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "xks_key_id": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDB9fQ==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "data",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::navkirat-sharepoint-datalake-v2",
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "bucket_domain_name": "navkirat-sharepoint-datalake-v2.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_regional_domain_name": "navkirat-sharepoint-datalake-v2.s3.ap-south-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "7e136de4b3c2ec10006bd8d4657cefdb06be94ca6304531d1baa30da1c050f3b",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z11RGJOFQNVJUP",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "lifecycle_rule": [
+              {
+                "abort_incomplete_multipart_upload_days": 0,
+                "enabled": true,
+                "expiration": [],
+                "id": "sharepoint-backup-tiering",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "sharepoint-backup/",
+                "tags": {},
+                "transition": [
+                  {
+                    "date": "",
+                    "days": 90,
+                    "storage_class": "GLACIER_IR"
+                  }
+                ]
+              }
+            ],
+            "logging": [],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "{\"Statement\":[{\"Action\":[\"s3:PutObject\",\"s3:GetBucketAcl\",\"s3:PutObjectAcl\"],\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"926046660390\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"appflow.amazonaws.com\"},\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"],\"Sid\":\"AllowAppFlowWrite\"}],\"Version\":\"2012-10-17\"}",
+            "region": "ap-south-1",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+                        "sse_algorithm": "aws:kms"
+                      }
+                    ],
+                    "bucket_key_enabled": true
+                  }
+                ]
+              }
+            ],
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": true,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_lifecycle_configuration",
+      "name": "backup_archive",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "expected_bucket_owner": "",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "rule": [
+              {
+                "abort_incomplete_multipart_upload": [],
+                "expiration": [],
+                "filter": [
+                  {
+                    "and": [],
+                    "object_size_greater_than": null,
+                    "object_size_less_than": null,
+                    "prefix": "sharepoint-backup/",
+                    "tag": []
+                  }
+                ],
+                "id": "sharepoint-backup-tiering",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "",
+                "status": "Enabled",
+                "transition": [
+                  {
+                    "date": null,
+                    "days": 90,
+                    "storage_class": "GLACIER_IR"
+                  }
+                ]
+              }
+            ],
+            "timeouts": null,
+            "transition_default_minimum_object_size": "all_storage_classes_128K"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_lifecycle_configuration",
+      "name": "zones",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "expected_bucket_owner": "",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "rule": [
+              {
+                "abort_incomplete_multipart_upload": [],
+                "expiration": [],
+                "filter": [
+                  {
+                    "and": [],
+                    "object_size_greater_than": null,
+                    "object_size_less_than": null,
+                    "prefix": "raw/",
+                    "tag": []
+                  }
+                ],
+                "id": "raw-zone-archival",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "",
+                "status": "Enabled",
+                "transition": [
+                  {
+                    "date": null,
+                    "days": 90,
+                    "storage_class": "GLACIER_IR"
+                  }
+                ]
+              },
+              {
+                "abort_incomplete_multipart_upload": [],
+                "expiration": [],
+                "filter": [
+                  {
+                    "and": [],
+                    "object_size_greater_than": null,
+                    "object_size_less_than": null,
+                    "prefix": "processed/",
+                    "tag": []
+                  }
+                ],
+                "id": "processed-zone-tiering",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "",
+                "status": "Enabled",
+                "transition": [
+                  {
+                    "date": null,
+                    "days": 60,
+                    "storage_class": "STANDARD_IA"
+                  }
+                ]
+              },
+              {
+                "abort_incomplete_multipart_upload": [],
+                "expiration": [],
+                "filter": [
+                  {
+                    "and": [],
+                    "object_size_greater_than": null,
+                    "object_size_less_than": null,
+                    "prefix": "curated/",
+                    "tag": []
+                  }
+                ],
+                "id": "curated-zone-tiering",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "",
+                "status": "Enabled",
+                "transition": [
+                  {
+                    "date": null,
+                    "days": 30,
+                    "storage_class": "STANDARD_IA"
+                  }
+                ]
+              },
+              {
+                "abort_incomplete_multipart_upload": [],
+                "expiration": [
+                  {
+                    "date": null,
+                    "days": 30,
+                    "expired_object_delete_marker": false
+                  }
+                ],
+                "filter": [
+                  {
+                    "and": [],
+                    "object_size_greater_than": null,
+                    "object_size_less_than": null,
+                    "prefix": "athena-results/",
+                    "tag": []
+                  }
+                ],
+                "id": "athena-results-expiry",
+                "noncurrent_version_expiration": [],
+                "noncurrent_version_transition": [],
+                "prefix": "",
+                "status": "Enabled",
+                "transition": []
+              }
+            ],
+            "timeouts": null,
+            "transition_default_minimum_object_size": "all_storage_classes_128K"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_policy",
+      "name": "appflow_write",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "policy": "{\"Statement\":[{\"Action\":[\"s3:PutObject\",\"s3:GetBucketAcl\",\"s3:PutObjectAcl\"],\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"926046660390\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"appflow.amazonaws.com\"},\"Resource\":[\"arn:aws:s3:::navkirat-sharepoint-datalake-v2\",\"arn:aws:s3:::navkirat-sharepoint-datalake-v2/*\"],\"Sid\":\"AllowAppFlowWrite\"}],\"Version\":\"2012-10-17\"}"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.data",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "data",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "block_public_acls": true,
+            "block_public_policy": true,
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "ignore_public_acls": true,
+            "restrict_public_buckets": true
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_server_side_encryption_configuration",
+      "name": "data",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "expected_bucket_owner": "",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "rule": [
+              {
+                "apply_server_side_encryption_by_default": [
+                  {
+                    "kms_master_key_id": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+                    "sse_algorithm": "aws:kms"
+                  }
+                ],
+                "bucket_key_enabled": true
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "aws_s3_bucket.data",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_versioning",
+      "name": "data",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "expected_bucket_owner": "",
+            "id": "navkirat-sharepoint-datalake-v2",
+            "mfa": null,
+            "versioning_configuration": [
+              {
+                "mfa_delete": "",
+                "status": "Enabled"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_object",
+      "name": "glue_etl_script",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "acl": null,
+            "arn": "arn:aws:s3:::navkirat-sharepoint-datalake-v2/glue-scripts/sharepoint_etl.py",
+            "bucket": "navkirat-sharepoint-datalake-v2",
+            "bucket_key_enabled": true,
+            "cache_control": "",
+            "checksum_algorithm": null,
+            "checksum_crc32": "",
+            "checksum_crc32c": "",
+            "checksum_crc64nvme": "",
+            "checksum_sha1": "",
+            "checksum_sha256": "",
+            "content": null,
+            "content_base64": null,
+            "content_disposition": "",
+            "content_encoding": "",
+            "content_language": "",
+            "content_type": "text/x-python",
+            "etag": "1652bf2bcc19ada2f304df9db0925e15",
+            "force_destroy": false,
+            "id": "glue-scripts/sharepoint_etl.py",
+            "key": "glue-scripts/sharepoint_etl.py",
+            "kms_key_id": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+            "metadata": {},
+            "object_lock_legal_hold_status": "",
+            "object_lock_mode": "",
+            "object_lock_retain_until_date": "",
+            "override_provider": [],
+            "server_side_encryption": "aws:kms",
+            "source": "./glue_etl_script.py",
+            "source_hash": null,
+            "storage_class": "STANDARD",
+            "tags": {},
+            "tags_all": {},
+            "version_id": "5uNimuG3uqHKtyyEFt4BmGnXW_xU3iNF",
+            "website_redirect": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.data"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret",
+      "name": "pii_config",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai",
+            "description": "PII salt and config for SharePoint ETL pipeline",
+            "force_overwrite_replica_secret": false,
+            "id": "arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai",
+            "kms_key_id": "arn:aws:kms:ap-south-1:926046660390:key/eba2b72c-f11c-4d37-bce6-eff77e7af3d8",
+            "name": "sharepoint-data/pii-config",
+            "name_prefix": "",
+            "policy": "",
+            "recovery_window_in_days": 7,
+            "replica": [],
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret_version",
+      "name": "pii_config",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai",
+            "has_secret_string_wo": null,
+            "id": "arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai|terraform-20260619113522371900000002",
+            "secret_binary": "",
+            "secret_id": "arn:aws:secretsmanager:ap-south-1:926046660390:secret:sharepoint-data/pii-config-EMF5ai",
+            "secret_string": "{\"pii_salt\":\"rah-infotech-pii-salt-2026\"}",
+            "secret_string_wo": null,
+            "secret_string_wo_version": null,
+            "version_id": "terraform-20260619113522371900000002",
+            "version_stages": [
+              "AWSCURRENT"
+            ]
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "secret_binary"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "secret_string"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "secret_string_wo"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.glue_crawler",
+            "aws_kms_key.data",
+            "aws_secretsmanager_secret.pii_config",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

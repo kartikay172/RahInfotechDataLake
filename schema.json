@@ -1,0 +1,38 @@
+{
+  "source": "sharepoint-backup/Resources_Details/Skill_Set_of_Team.xlsx",
+  "sheet": "Sheet1",
+  "processed_at": "2026-06-19T11:48:06.515805",
+  "partition": "year=2026/month=06/day=19",
+  "columns": [
+    {
+      "name": "S.No",
+      "type": "integer",
+      "pii": false,
+      "pii_treatment": "none"
+    },
+    {
+      "name": "Names",
+      "type": "string",
+      "pii": true,
+      "pii_treatment": "masked"
+    },
+    {
+      "name": "Skill_Set",
+      "type": "string",
+      "pii": false,
+      "pii_treatment": "none"
+    },
+    {
+      "name": "Domain",
+      "type": "string",
+      "pii": false,
+      "pii_treatment": "none"
+    },
+    {
+      "name": "DOJ",
+      "type": "string",
+      "pii": true,
+      "pii_treatment": "hashed"
+    }
+  ]
+}

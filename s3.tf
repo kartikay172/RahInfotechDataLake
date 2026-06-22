@@ -4,7 +4,9 @@ resource "aws_s3_bucket" "data" {
 
 resource "aws_s3_bucket_versioning" "data" {
   bucket = aws_s3_bucket.data.id
-  versioning_configuration { status = "Enabled" }
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "data" {
@@ -36,20 +38,52 @@ resource "aws_s3_bucket_policy" "appflow_write" {
       Principal = { Service = "appflow.amazonaws.com" }
       Action    = ["s3:PutObject", "s3:GetBucketAcl", "s3:PutObjectAcl"]
       Resource  = [aws_s3_bucket.data.arn, "${aws_s3_bucket.data.arn}/*"]
-      Condition = { StringEquals = { "aws:SourceAccount" = data.aws_caller_identity.current.account_id } }
+      Condition = {
+        StringEquals = {
+          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+        }
+      }
     }]
   })
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "backup_archive" {
+resource "aws_s3_bucket_lifecycle_configuration" "zones" {
   bucket = aws_s3_bucket.data.id
+
   rule {
-    id     = "sharepoint-backup-tiering"
+    id     = "raw-zone-archival"
     status = "Enabled"
-    filter { prefix = var.sharepoint_backup_prefix }
+    filter { prefix = "raw/" }
     transition {
-      days          = var.backup_glacier_transition_days
+      days          = 90
       storage_class = "GLACIER_IR"
     }
+  }
+
+  rule {
+    id     = "processed-zone-tiering"
+    status = "Enabled"
+    filter { prefix = "processed/" }
+    transition {
+      days          = 60
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  rule {
+    id     = "curated-zone-tiering"
+    status = "Enabled"
+    filter { prefix = "curated/" }
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  rule {
+    id     = "athena-results-expiry"
+    status = "Enabled"
+    filter { prefix = "athena-results/" }
+    expiration { days = 30 }
   }
 }

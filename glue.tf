@@ -40,8 +40,9 @@ resource "aws_glue_job" "sharepoint_etl" {
     "--job-language"                     = "python"
     "--job-bookmark-option"              = "job-bookmark-enable"
     "--SOURCE_BUCKET"                    = aws_s3_bucket.data.bucket
-    "--SOURCE_PREFIX"                    = var.sharepoint_backup_prefix
-    "--DEST_PREFIX"                      = "processed/"
+    "--RAW_PREFIX"                       = var.raw_prefix
+    "--PROCESSED_PREFIX"                 = var.processed_prefix
+    "--CURATED_PREFIX"                   = var.curated_prefix
     "--SECRET_NAME"                      = aws_secretsmanager_secret.pii_config.name
     "--REGION_NAME"                      = var.aws_region
     "--enable-continuous-cloudwatch-log" = "true"
@@ -63,34 +64,50 @@ resource "aws_glue_trigger" "etl_schedule" {
   start_on_creation = true
 }
 
-resource "aws_glue_crawler" "sharepoint_data" {
-  name          = "${var.project_name}-crawler"
+resource "aws_glue_crawler" "processed" {
+  name          = "${var.project_name}-processed-crawler"
   role          = aws_iam_role.glue_crawler.arn
   database_name = aws_glue_catalog_database.this.name
-
   s3_target {
-    path       = "s3://${aws_s3_bucket.data.bucket}/processed/Resources_Details/"
+    path       = "s3://${aws_s3_bucket.data.bucket}/${var.processed_prefix}Resources_Details/"
     exclusions = ["**.json"]
   }
-
   s3_target {
-    path       = "s3://${aws_s3_bucket.data.bucket}/processed/Services/"
+    path       = "s3://${aws_s3_bucket.data.bucket}/${var.processed_prefix}Services/"
     exclusions = ["**.json"]
   }
-
   schema_change_policy {
     update_behavior = "UPDATE_IN_DATABASE"
     delete_behavior = "LOG"
   }
-
   configuration = jsonencode({
     Version = 1.0
     CrawlerOutput = {
       Partitions = { AddOrUpdateBehavior = "InheritFromTable" }
       Tables     = { AddOrUpdateBehavior = "MergeNewColumns" }
     }
-    Grouping = {
-      TableGroupingPolicy = "CombineCompatibleSchemas"
+    Grouping = { TableGroupingPolicy = "CombineCompatibleSchemas" }
+  })
+}
+
+resource "aws_glue_crawler" "curated" {
+  name          = "${var.project_name}-curated-crawler"
+  role          = aws_iam_role.glue_crawler.arn
+  database_name = aws_glue_catalog_database.this.name
+  s3_target {
+    path       = "s3://${aws_s3_bucket.data.bucket}/${var.curated_prefix}"
+    exclusions = ["**.json"]
+  }
+  schema_change_policy {
+    update_behavior = "UPDATE_IN_DATABASE"
+    delete_behavior = "LOG"
+  }
+  configuration = jsonencode({
+    Version = 1.0
+    CrawlerOutput = {
+      Partitions = { AddOrUpdateBehavior = "InheritFromTable" }
+      Tables     = { AddOrUpdateBehavior = "MergeNewColumns" }
     }
+    Grouping = { TableGroupingPolicy = "CombineCompatibleSchemas" }
   })
 }
