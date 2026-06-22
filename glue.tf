@@ -54,15 +54,7 @@ resource "aws_glue_job" "sharepoint_etl" {
   timeout           = 60
 }
 
-resource "aws_glue_trigger" "etl_schedule" {
-  name     = "${var.project_name}-etl-trigger"
-  type     = "SCHEDULED"
-  schedule = "cron(30 0,6,12 * * ? *)"
-  actions {
-    job_name = aws_glue_job.sharepoint_etl.name
-  }
-  start_on_creation = true
-}
+
 
 resource "aws_glue_crawler" "processed" {
   name          = "${var.project_name}-processed-crawler"
