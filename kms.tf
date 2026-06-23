@@ -9,7 +9,9 @@ resource "aws_kms_key" "data" {
       {
         Sid    = "Enable IAM User Permissions"
         Effect = "Allow"
-        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
         Action   = "kms:*"
         Resource = "*"
       },
@@ -27,14 +29,29 @@ resource "aws_kms_key" "data" {
         Action   = ["kms:Encrypt","kms:Decrypt","kms:ReEncrypt*","kms:GenerateDataKey","kms:DescribeKey"]
         Resource = "*"
         Condition = {
-          ArnLike = { "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:ap-south-1:${data.aws_caller_identity.current.account_id}:*" }
+          ArnLike = {
+            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:ap-south-1:${data.aws_caller_identity.current.account_id}:*"
+          }
         }
       }
     ]
   })
+
+  tags = {
+    Name    = "${var.project_name}-kms-key"
+    Project = var.project_name
+  }
 }
 
 resource "aws_kms_alias" "data" {
   name          = "alias/${var.project_name}-key"
   target_key_id = aws_kms_key.data.key_id
+}
+
+# Grant Glue role access to old KMS key (eba2b72c) used for existing raw files
+resource "aws_kms_grant" "glue_old_key" {
+  name              = "glue-role-old-key-access"
+  key_id            = "eba2b72c-f11c-4d37-bce6-eff77e7af3d8"
+  grantee_principal = aws_iam_role.glue_crawler.arn
+  operations        = ["Decrypt", "GenerateDataKey", "DescribeKey"]
 }
