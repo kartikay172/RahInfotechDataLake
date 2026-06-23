@@ -10,3 +10,4 @@ result.csv
 schema.json
 versions.json
 project.md
+.terraform.lock.hcl
