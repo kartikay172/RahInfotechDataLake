@@ -1,17 +1,17 @@
 """
-SharePoint Data Lake ETL Script — Enhanced
+SharePoint Data Lake ETL Script â€” Enhanced
 ==========================================
 Features:
-  4. Query performance  — writes Parquet to curated zone (10x faster than CSV in Athena)
-  5. Schema validation  — validates column count + types, rejects bad rows
-  6. Dynamic tables     — auto-registers every sheet as {filename}_{sheetname}
-  7. Deduplication      — SHA-256 row hash prevents duplicates across runs
-  8. Daily partitioning — each day's data isolated, no overwrite of previous days
+  4. Query performance  â€” writes Parquet to curated zone (10x faster than CSV in Athena)
+  5. Schema validation  â€” validates column count + types, rejects bad rows
+  6. Dynamic tables     â€” auto-registers every sheet as {filename}_{sheetname}
+  7. Deduplication      â€” SHA-256 row hash prevents duplicates across runs
+  8. Daily partitioning â€” each day's data isolated, no overwrite of previous days
 
 Zones:
-  raw/       → Original Excel files (source of truth)
-  processed/ → PII-masked CSV (human readable, auditable)
-  curated/   → Parquet + deduplicated (optimized for Athena queries)
+  raw/       â†’ Original Excel files (source of truth)
+  processed/ â†’ PII-masked CSV (human readable, auditable)
+  curated/   â†’ Parquet + deduplicated (optimized for Athena queries)
 """
 
 import sys, boto3, io, csv, json, logging, hashlib, re, subprocess
@@ -34,7 +34,7 @@ CURATED_PREFIX   = args["CURATED_PREFIX"]
 SECRET_NAME      = args["SECRET_NAME"]
 REGION_NAME      = args["REGION_NAME"]
 
-# ── Secrets Manager ────────────────────────────────────────────────────────────
+# â”€â”€ Secrets Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 secrets_client = boto3.client("secretsmanager", region_name=REGION_NAME)
 PII_SALT = json.loads(
     secrets_client.get_secret_value(SecretId=SECRET_NAME)["SecretString"]
@@ -52,7 +52,7 @@ now = datetime.utcnow()
 PARTITION = f"year={now.year}/month={now.month:02d}/day={now.day:02d}"
 YEAR, MONTH, DAY = str(now.year), f"{now.month:02d}", f"{now.day:02d}"
 
-# ── PII patterns ───────────────────────────────────────────────────────────────
+# â”€â”€ PII patterns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 PII_NAME_PATTERNS = [r"name",r"email",r"phone",r"mobile",r"address",r"ssn",r"aadhaar",r"pan"]
 PII_DATE_PATTERNS = [r"dob",r"doj",r"date.?of.?birth",r"date.?of.?join",r"joining",r"birth"]
 
@@ -65,7 +65,7 @@ def mask(v):
 def hash_val(v): return hashlib.sha256(f"{PII_SALT}:{v}".encode()).hexdigest()[:16]
 def row_hash(row): return hashlib.md5("|".join(str(c) for c in row).encode()).hexdigest()
 
-# ── Datatype detection ─────────────────────────────────────────────────────────
+# â”€â”€ Datatype detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def detect_type(v):
     if v is None or str(v).strip()=="": return None,"null"
     s = str(v).strip()
@@ -79,6 +79,11 @@ def detect_type(v):
         except: pass
     return s,"string"
 
+ID_PATTERNS = [r"^s[\._]?no$", r"id$", r"code$", r"ref$", r"number$", r"num$"]
+
+def is_id_column(col):
+    return any(re.search(p, col.lower()) for p in ID_PATTERNS)
+
 def infer_types(rows, headers):
     votes = {h:{} for h in headers}
     for row in rows:
@@ -91,19 +96,20 @@ def infer_types(rows, headers):
     for h in headers:
         v = {k:n for k,n in votes[h].items() if k!="null"}
         if not v: result[h]="string"; continue
+        if is_id_column(h): result[h]="string"; continue  # ID cols always string
         for p in priority:
             if p in v and v[p]==max(v.values()): result[h]=p; break
         else: result[h]=max(v,key=v.get)
     return result
 
-# ── FEATURE 5: Schema validation ───────────────────────────────────────────────
+# â”€â”€ FEATURE 5: Schema validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def validate_row(row, headers, col_types, row_num):
     """Validates a single row. Returns (is_valid, issues_list)"""
     issues = []
 
     # Column count check
     if len(row) != len(headers):
-        issues.append(f"Row {row_num}: column count mismatch — expected {len(headers)}, got {len(row)}")
+        issues.append(f"Row {row_num}: column count mismatch â€” expected {len(headers)}, got {len(row)}")
         return False, issues
 
     # Type validation
@@ -121,7 +127,7 @@ def validate_row(row, headers, col_types, row_num):
 
     return len(issues) == 0, issues
 
-# ── FEATURE 6: Dynamic table name from filename + sheet ────────────────────────
+# â”€â”€ FEATURE 6: Dynamic table name from filename + sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def make_table_name(file_key, sheet_name, prefix):
     """Generate standard table name: {filename}_{sheetname}"""
     rel       = file_key[len(prefix):]
@@ -132,7 +138,7 @@ def make_table_name(file_key, sheet_name, prefix):
     sheet_std = re.sub(r"[^a-z0-9_]", "_", sheet_std)
     return f"{filename}_{sheet_std}"
 
-# ── FEATURE 6: Register table in Glue catalog ─────────────────────────────────
+# â”€â”€ FEATURE 6: Register table in Glue catalog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def register_glue_table(table_name, s3_location, headers, col_types, database="sharepoint_db"):
     """Auto-register or update a Glue catalog table with partition projection"""
     type_map = {"integer":"bigint","float":"double","date":"string","boolean":"boolean","string":"string","null":"string"}
@@ -178,14 +184,14 @@ def register_glue_table(table_name, s3_location, headers, col_types, database="s
 
     try:
         glue.create_table(DatabaseName=database, TableInput=table_input)
-        logger.info(f"  ✓ Created Glue table: {database}.{table_name}")
+        logger.info(f"  âœ“ Created Glue table: {database}.{table_name}")
     except glue.exceptions.AlreadyExistsException:
         glue.update_table(DatabaseName=database, TableInput=table_input)
-        logger.info(f"  ✓ Updated Glue table: {database}.{table_name}")
+        logger.info(f"  âœ“ Updated Glue table: {database}.{table_name}")
     except Exception as e:
-        logger.error(f"  ✗ Failed to register table {table_name}: {e}")
+        logger.error(f"  âœ— Failed to register table {table_name}: {e}")
 
-# ── Discover Excel files ───────────────────────────────────────────────────────
+# â”€â”€ Discover Excel files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 logger.info(f"Scanning RAW zone: s3://{SOURCE_BUCKET}/{RAW_PREFIX}")
 paginator = s3.get_paginator("list_objects_v2")
 xlsx_keys = [
@@ -226,7 +232,7 @@ for key in xlsx_keys:
             col_types = infer_types(data, headers)
             logger.info(f"  Sheet '{sheet_name}': {len(data)} rows | Types: {col_types}")
 
-            # ── FEATURE 5: Validate rows ───────────────────────────────────
+            # â”€â”€ FEATURE 5: Validate rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             valid_rows, rejected_rows = [], []
             for row_num, row in enumerate(data, start=2):
                 is_valid, issues = validate_row(row, headers, col_types, row_num)
@@ -236,12 +242,12 @@ for key in xlsx_keys:
                     rejected_rows.append({"row": row_num, "issues": issues, "data": row})
 
             if rejected_rows:
-                logger.warning(f"  ⚠ {len(rejected_rows)} rows rejected (schema mismatch)")
+                logger.warning(f"  âš  {len(rejected_rows)} rows rejected (schema mismatch)")
                 validation_report.extend(rejected_rows)
 
-            logger.info(f"  ✓ {len(valid_rows)} valid rows, {len(rejected_rows)} rejected")
+            logger.info(f"  âœ“ {len(valid_rows)} valid rows, {len(rejected_rows)} rejected")
 
-            # ── FEATURE 7: Deduplicate using row hash ──────────────────────
+            # â”€â”€ FEATURE 7: Deduplicate using row hash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             seen_hashes = set()
             deduped_rows = []
             for row in valid_rows:
@@ -252,9 +258,9 @@ for key in xlsx_keys:
 
             dupes_removed = len(valid_rows) - len(deduped_rows)
             if dupes_removed > 0:
-                logger.info(f"  ✓ Removed {dupes_removed} duplicate rows")
+                logger.info(f"  âœ“ Removed {dupes_removed} duplicate rows")
 
-            # ── PII transformation ─────────────────────────────────────────
+            # â”€â”€ PII transformation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             transformed = []
             for row in deduped_rows:
                 out = []
@@ -268,13 +274,13 @@ for key in xlsx_keys:
                     out.append(s)
                 transformed.append(out)
 
-            # ── FEATURE 8: Partition paths ─────────────────────────────────
+            # â”€â”€ FEATURE 8: Partition paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             rel    = key[len(RAW_PREFIX):]
             folder = rel.rsplit("/",1)[0] if "/" in rel else ""
             stem   = rel.rsplit("/",1)[-1].replace(".xlsx","").replace(" ","_")
             slug   = sheet_name.replace(" ","_")
 
-            # Write PROCESSED zone (CSV — human readable)
+            # Write PROCESSED zone (CSV â€” human readable)
             proc_key   = f"{PROCESSED_PREFIX}{folder}/{stem}/{slug}/{PARTITION}/data.csv"
             schema_key = f"{PROCESSED_PREFIX}{folder}/{stem}/{slug}/{PARTITION}/schema.json"
 
@@ -297,9 +303,9 @@ for key in xlsx_keys:
             }
             s3.put_object(Bucket=SOURCE_BUCKET, Key=schema_key,
                           Body=json.dumps(schema,indent=2).encode(), ContentType="application/json")
-            logger.info(f"  ✓ PROCESSED CSV: {proc_key}")
+            logger.info(f"  âœ“ PROCESSED CSV: {proc_key}")
 
-            # ── FEATURE 4: Write CURATED zone as Parquet ──────────────────
+            # â”€â”€ FEATURE 4: Write CURATED zone as Parquet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             curated_base = f"{CURATED_PREFIX}{folder}/{stem}/{slug}/"
             curated_key  = f"{curated_base}{PARTITION}/data.parquet"
 
@@ -335,11 +341,11 @@ for key in xlsx_keys:
                               Body=json.dumps(list(all_hashes)).encode(),
                               ContentType="application/json")
 
-                logger.info(f"  ✓ CURATED Parquet: {curated_key} ({len(new_rows)} new rows)")
+                logger.info(f"  âœ“ CURATED Parquet: {curated_key} ({len(new_rows)} new rows)")
             else:
-                logger.info(f"  ✓ No new rows for {curated_key} (all already processed today)")
+                logger.info(f"  âœ“ No new rows for {curated_key} (all already processed today)")
 
-            # ── FEATURE 6: Auto-register table in Glue catalog ────────────
+            # â”€â”€ FEATURE 6: Auto-register table in Glue catalog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             table_name = make_table_name(key, sheet_name, RAW_PREFIX)
             s3_location = f"s3://{SOURCE_BUCKET}/{curated_base}"
             register_glue_table(table_name, s3_location, headers, col_types)
@@ -348,7 +354,7 @@ for key in xlsx_keys:
         logger.error(f"Failed {key}: {e}")
         import traceback; traceback.print_exc()
 
-# ── Write validation report ────────────────────────────────────────────────────
+# â”€â”€ Write validation report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if validation_report:
     report_key = f"validation-reports/{PARTITION}/rejected_rows.json"
     s3.put_object(Bucket=SOURCE_BUCKET, Key=report_key,
@@ -359,7 +365,7 @@ if validation_report:
 logger.info(f"\nDone. RAW={RAW_PREFIX} | PROCESSED={PROCESSED_PREFIX} | CURATED={CURATED_PREFIX}")
 logger.info(f"Partition: {PARTITION}")
 
-# ── FEATURE 11: Schema Change Handler ─────────────────────────────────────────
+# â”€â”€ FEATURE 11: Schema Change Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Detects added/deleted/renamed columns and handles gracefully
 
 def load_previous_schema(s3_client, bucket, schema_prefix):

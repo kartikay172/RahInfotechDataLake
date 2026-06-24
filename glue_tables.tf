@@ -32,7 +32,7 @@ resource "aws_glue_catalog_table" "skill_set_of_team" {
 
     columns {
       name = "s_no"
-      type = "bigint"
+      type = "string"
     }
     columns {
       name    = "names"
