@@ -5,9 +5,7 @@ resource "aws_glue_catalog_table" "skill_set_of_team" {
   table_type    = "EXTERNAL_TABLE"
 
   parameters = {
-    "classification"            = "csv"
-    "delimiter"                 = ","
-    "skip.header.line.count"    = "1"
+    "classification"            = "parquet"
     "projection.enabled"        = "true"
     "projection.year.type"      = "integer"
     "projection.year.range"     = "2024,2030"
@@ -22,12 +20,12 @@ resource "aws_glue_catalog_table" "skill_set_of_team" {
 
   storage_descriptor {
     location      = "s3://${var.bucket_name}/${var.curated_prefix}Resources_Details/Skill_Set_of_Team/Sheet1/"
-    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+    input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
     ser_de_info {
-      serialization_library = "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe"
-      parameters            = { "field.delim" = "," }
+      serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+      parameters            = { "serialization.format" = "1" }
     }
 
     columns {
@@ -75,9 +73,7 @@ resource "aws_glue_catalog_table" "mostly_common_services" {
   table_type    = "EXTERNAL_TABLE"
 
   parameters = {
-    "classification"            = "csv"
-    "delimiter"                 = ","
-    "skip.header.line.count"    = "1"
+    "classification"            = "parquet"
     "projection.enabled"        = "true"
     "projection.year.type"      = "integer"
     "projection.year.range"     = "2024,2030"
@@ -92,12 +88,12 @@ resource "aws_glue_catalog_table" "mostly_common_services" {
 
   storage_descriptor {
     location      = "s3://${var.bucket_name}/${var.curated_prefix}Services/AWS Services/Mostly_Common_Services/DATA/"
-    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+    input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
     ser_de_info {
-      serialization_library = "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe"
-      parameters            = { "field.delim" = "," }
+      serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+      parameters            = { "serialization.format" = "1" }
     }
 
     columns {
