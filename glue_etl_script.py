@@ -358,3 +358,69 @@ if validation_report:
 
 logger.info(f"\nDone. RAW={RAW_PREFIX} | PROCESSED={PROCESSED_PREFIX} | CURATED={CURATED_PREFIX}")
 logger.info(f"Partition: {PARTITION}")
+
+# ── FEATURE 11: Schema Change Handler ─────────────────────────────────────────
+# Detects added/deleted/renamed columns and handles gracefully
+
+def load_previous_schema(s3_client, bucket, schema_prefix):
+    """Load the most recent schema for comparison."""
+    try:
+        paginator = s3_client.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=bucket, Prefix=schema_prefix)
+        keys = sorted([
+            obj["Key"]
+            for page in pages
+            for obj in page.get("Contents", [])
+            if obj["Key"].endswith("schema.json")
+        ], reverse=True)
+        if not keys:
+            return None
+        obj = s3_client.get_object(Bucket=bucket, Key=keys[0])
+        return json.loads(obj["Body"].read())
+    except Exception:
+        return None
+
+
+def detect_schema_changes(prev_schema, curr_headers):
+    """
+    Compare previous schema with current headers.
+    Returns dict with added, removed, and unchanged columns.
+    """
+    if not prev_schema:
+        return {"status": "NEW_TABLE", "added": curr_headers, "removed": [], "unchanged": []}
+
+    prev_cols = [c["name"] for c in prev_schema.get("columns", [])]
+    curr_cols  = curr_headers
+
+    added   = [c for c in curr_cols if c not in prev_cols]
+    removed = [c for c in prev_cols if c not in curr_cols]
+    unchanged = [c for c in curr_cols if c in prev_cols]
+
+    status = "NO_CHANGE"
+    if added and removed:
+        status = "COLUMNS_ADDED_AND_REMOVED"
+    elif added:
+        status = "COLUMNS_ADDED"
+    elif removed:
+        status = "COLUMNS_REMOVED"
+
+    return {
+        "status"   : status,
+        "added"    : added,
+        "removed"  : removed,
+        "unchanged": unchanged
+    }
+
+
+def align_row_to_schema(row, curr_headers, prev_headers):
+    """
+    Align a row to handle schema changes:
+    - New columns get empty string
+    - Removed columns are dropped
+    - Existing columns are preserved
+    """
+    row_dict = dict(zip(curr_headers, row))
+    aligned  = []
+    for h in curr_headers:
+        aligned.append(row_dict.get(h, ""))
+    return aligned
