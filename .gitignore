@@ -23,3 +23,7 @@ project.md
 fix-table.json
 run-args.json
 *.parquet
+sync.log
+sharepoint_sync.py
+test_sp.py
+token_cache.bin
