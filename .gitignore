@@ -11,3 +11,14 @@ schema.json
 versions.json
 project.md
 .terraform.lock.hcl
+downloaded_etl.py
+glue-s3-policy.json
+versions.json
+analysis-report.md
+code-review-report.md
+project.md
+*.json
+*.csv
+*.py.bak
+fix-table.json
+run-args.json
