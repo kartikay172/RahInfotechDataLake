@@ -22,3 +22,4 @@ project.md
 *.py.bak
 fix-table.json
 run-args.json
+*.parquet
