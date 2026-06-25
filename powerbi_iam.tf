@@ -25,10 +25,10 @@ resource "aws_secretsmanager_secret" "powerbi_credentials" {
 resource "aws_secretsmanager_secret_version" "powerbi_credentials" {
   secret_id = aws_secretsmanager_secret.powerbi_credentials.id
   secret_string = jsonencode({
-    access_key_id     = aws_iam_access_key.powerbi_reader.id
-    secret_access_key = aws_iam_access_key.powerbi_reader.secret
-    region            = var.aws_region
-    athena_workgroup  = "${var.project_name}-workgroup"
+    access_key_id      = aws_iam_access_key.powerbi_reader.id
+    secret_access_key  = aws_iam_access_key.powerbi_reader.secret
+    region             = var.aws_region
+    athena_workgroup   = "${var.project_name}-workgroup"
     s3_output_location = "s3://${var.bucket_name}/${var.athena_results_prefix}"
   })
 }

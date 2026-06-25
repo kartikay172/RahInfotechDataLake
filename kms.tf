@@ -16,18 +16,18 @@ resource "aws_kms_key" "data" {
         Resource = "*"
       },
       {
-        Sid    = "Allow Glue Role"
-        Effect = "Allow"
+        Sid       = "Allow Glue Role"
+        Effect    = "Allow"
         Principal = { AWS = aws_iam_role.glue_crawler.arn }
-        Action   = ["kms:Decrypt","kms:GenerateDataKey","kms:DescribeKey","kms:Encrypt","kms:ReEncrypt*","kms:CreateGrant"]
-        Resource = "*"
+        Action    = ["kms:Decrypt", "kms:GenerateDataKey", "kms:DescribeKey", "kms:Encrypt", "kms:ReEncrypt*", "kms:CreateGrant"]
+        Resource  = "*"
       },
       {
-        Sid    = "Allow CloudWatch Logs"
-        Effect = "Allow"
+        Sid       = "Allow CloudWatch Logs"
+        Effect    = "Allow"
         Principal = { Service = "logs.ap-south-1.amazonaws.com" }
-        Action   = ["kms:Encrypt","kms:Decrypt","kms:ReEncrypt*","kms:GenerateDataKey","kms:DescribeKey"]
-        Resource = "*"
+        Action    = ["kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey", "kms:DescribeKey"]
+        Resource  = "*"
         Condition = {
           ArnLike = {
             "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:ap-south-1:${data.aws_caller_identity.current.account_id}:*"

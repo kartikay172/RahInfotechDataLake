@@ -14,7 +14,7 @@ resource "aws_athena_workgroup" "this" {
       }
     }
 
-    execution_role = null
+    execution_role                 = null
     bytes_scanned_cutoff_per_query = 1073741824
   }
 }
