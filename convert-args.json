@@ -1,0 +1,1 @@
+{"--job-bookmark-option":"job-bookmark-disable","--SOURCE_BUCKET":"navkirat-sharepoint-datalake-v2","--SOURCE_PREFIX":"processed/","--DEST_PREFIX":"curated-parquet/","--REGION_NAME":"ap-south-1"}

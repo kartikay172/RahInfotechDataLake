@@ -1,0 +1,1 @@
+{"Name":"sharepoint-data-parquet-crawler","Role":"sharepoint-data-glue-crawler-role","DatabaseName":"sharepoint_db","Targets":{"S3Targets":[{"Path":"s3://navkirat-sharepoint-datalake-v2/curated-parquet/","Exclusions":["**.json"]}]},"SchemaChangePolicy":{"UpdateBehavior":"UPDATE_IN_DATABASE","DeleteBehavior":"LOG"}}
